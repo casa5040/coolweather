@@ -2,6 +2,7 @@ package com.coolweather.app.activity;
 
 import com.coolweather.app.R;
 import android.app.*;
+import android.content.SharedPreferences;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
@@ -10,6 +11,8 @@ import java.util.*;
 import com.coolweather.app.model.*;
 import com.coolweather.app.util.*;
 import android.os.*;
+import android.preference.PreferenceManager;
+import android.content.*;
 
 public class ChooseAreaActivity extends Activity{
 	public static final int LEVEL_PROVINCE=0;
@@ -31,10 +34,19 @@ public class ChooseAreaActivity extends Activity{
 	private County selectedCounty;
 	
     private int currentLevel;
+    private boolean isFromWeatherActivity;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
+    	isFromWeatherActivity=getIntent().getBooleanExtra("from_weather_activity", false);
+    	SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(this);
+    	if(prefs.getBoolean("city_selected", false) && !isFromWeatherActivity) {
+    		Intent intent=new Intent(this,WeatherActivity.class);
+    		startActivity(intent);
+    		finish();
+    		return;
+    	}
     	requestWindowFeature(Window.FEATURE_NO_TITLE);
     	setContentView(R.layout.choose_area);
     	listView=(ListView)findViewById(R.id.list_view);
@@ -53,6 +65,12 @@ public class ChooseAreaActivity extends Activity{
     			}else if(currentLevel==LEVEL_CITY) {
     				selectedCity=cityList.get(index);
     				queryCounties();
+    			}else if(currentLevel==LEVEL_COUNTY) {
+    				String countyCode=countyList.get(index).getCountyCode();
+    				Intent intent=new Intent(ChooseAreaActivity.this,WeatherActivity.class);
+    				intent.putExtra("county_code", countyCode);
+    				startActivity(intent);
+    				finish();
     			}
     		}
     	});
